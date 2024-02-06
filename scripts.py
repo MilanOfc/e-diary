@@ -1,3 +1,4 @@
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from datacenter.models import Mark, Commendation, Chastisement, Schoolkid, Lesson
 from random import choice
 
@@ -49,7 +50,7 @@ def remove_chastisements(schoolkid):
 
 def get_schoolkid(name):
     try:
-        return Schoolkid.objects.get(full_name__contains=pupil_name)
+        return Schoolkid.objects.get(full_name__contains=name)
     except MultipleObjectsReturned:
         print('Please specify the name, several students are found')
         return
