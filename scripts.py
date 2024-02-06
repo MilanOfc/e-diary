@@ -1,4 +1,3 @@
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from datacenter.models import Mark, Commendation, Chastisement, Schoolkid, Lesson
 from random import choice
 
@@ -36,35 +35,29 @@ COMMENDATIONS = [
 
 
 def fix_marks(schoolkid):
-    bad_marks = Mark.objects.filter(schoolkid=schoolkid, points__lt=4)
-    for mark in bad_marks:
-        mark.points = 5
-        mark.save()
+    Mark.objects.filter(schoolkid=schoolkid, points__lt=4).update(points=5)
 
 
 def remove_chastisements(schoolkid):
     kids_chastisements = Chastisement.objects.filter(schoolkid=schoolkid)
-    for chastisement in kids_chastisements:
-        chastisement.delete()
+    kids_chastisements.delete()
 
 
 def get_schoolkid(name):
     try:
         return Schoolkid.objects.get(full_name__contains=name)
-    except MultipleObjectsReturned:
+    except Schoolkid.MultipleObjectsReturned:
         print('Please specify the name, several students are found')
         return
-    except ObjectDoesNotExist:
+    except Schoolkid.DoesNotExist:
         print('This student does not exist, please check the name')
         return
 
 
-def create_commendation(pupil_name, subject):
-    pupil = get_schoolkid(pupil_name)
-    lessons = Lesson.objects.filter(year_of_study=pupil.year_of_study,
-                                    group_letter=pupil.group_letter,
-                                    subject__title=subject)
-    great_lesson = choice(lessons)
+def create_commendation(pupil, subject):
+    great_lesson = Lesson.objects.filter(year_of_study=pupil.year_of_study,
+                                         group_letter=pupil.group_letter,
+                                         subject__title=subject).order_by('?').first()
     commendation = choice(COMMENDATIONS)
     Commendation.objects.create(text=commendation,
                                 created=great_lesson.date,
